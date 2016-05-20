@@ -70,6 +70,18 @@ sub child_init_hook {
   return $self->SUPER(@rest);
 }
 
+sub post_accept {
+  my ($self, @rest) = @_;
+  $self->update_tracking("accepted request for processing");
+  $self->SUPER(@rest);
+}
+
+sub post_process_request_hook {
+  my ($self, @rest) = @_;
+  $self->update_tracking("request processing complete");
+  $self->SUPER(@rest);
+}
+
 sub child_finish_hook {
   my ($self, @rest) = @_;
   $self->update_tracking("child shutting down");
