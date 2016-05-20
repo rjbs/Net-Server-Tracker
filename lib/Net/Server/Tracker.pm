@@ -101,7 +101,7 @@ sub update_tracking {
 
   my $slot = $tracker->{slot}{$$};
   unless (defined $slot) {
-    warn "!!! can't update tracking for unregistered pid $$";
+    $self->log(1, "!!! can't update tracking for unregistered pid $$");
     return;
   }
 
@@ -131,11 +131,11 @@ sub update_tracking {
   utf8::encode($message);
 
   if ($message =~ s/\v/ /g) {
-    warn "!!! replaced vertical whitespace with horizontal whitespace";
+    $self->log(1, "!!! replaced vertical whitespace with horizontal");
   }
 
   if (length $message > $fit) {
-    warn "!!! truncating message to fit in slot";
+    $self->log(1, "!!! truncating message to fit in slot");
     $message = substr $message, 0, $fit;
   }
 
@@ -156,7 +156,7 @@ sub delete_child {
   if (defined $slot) {
     $self->{tracker}{array}[$slot] = undef;
   } else {
-    warn "!!! just reaped an unregistered child, pid $pid";
+    $self->log(1, "!!! just reaped an unregistered child, pid $pid");
   }
 
   return $self->SUPER($pid);
