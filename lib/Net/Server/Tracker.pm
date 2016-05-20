@@ -107,6 +107,10 @@ sub update_tracking {
   # -- rjbs, 2016-05-20
   utf8::encode($message);
 
+  if ($message =~ s/\v/ /g) {
+    warn "!!! replaced vertical whitespace with horizontal whitespace";
+  }
+
   if (length $message > $fit) {
     warn "!!! truncating message to fit in slot";
     $message = substr $message, 0, $fit;
