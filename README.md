@@ -40,12 +40,12 @@ isn't portable (to Solaris, for example).
 
 In `/var/run/cool.tracker` you'll find a file something like this:
 
-    20466  1463774233 child online
-    20467  1463774233 child online
-    20468  1463774233 child online
-    20469  1463774233 child online
-    20470  1463774233 child online
-    20472  1463774233 child online
+    20466  2016-05-20T16:46:01 child online
+    20467  2016-05-20T16:46:01 child online
+    20468  2016-05-20T16:46:01 child online
+    20469  2016-05-20T16:46:02 child online
+    20470  2016-05-20T16:46:02 child online
+    20472  2016-05-20T16:46:02 child online
 
 (There will be lots of trailing spaces and blank lines.  Don't sweat it.)
 
