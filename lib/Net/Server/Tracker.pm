@@ -34,7 +34,7 @@ sub post_configure_hook {
 
   $fh->close;
 
-  return $self->SUPER($self);
+  return $self->SUPER;
 }
 
 sub _tracker_first_empty_index {
@@ -50,7 +50,7 @@ sub register_child {
   my $slot_idx = $self->_tracker_first_empty_index;
   $self->{tracker}{array}[ $slot_idx ] = $pid;
   $self->{tracker}{slot}{$pid} = $slot_idx;
-  return $self->SUPER($self, $pid);
+  return $self->SUPER($pid);
 }
 
 sub child_init_hook {
@@ -67,13 +67,13 @@ sub child_init_hook {
 
   $self->update_tracking("child online");
 
-  return $self->SUPER($self, @rest);
+  return $self->SUPER(@rest);
 }
 
 sub child_finish_hook {
   my ($self, @rest) = @_;
   $self->update_tracking("child shutting down");
-  return $self->SUPER($self, @rest);
+  return $self->SUPER(@rest);
 }
 
 sub update_tracking {
