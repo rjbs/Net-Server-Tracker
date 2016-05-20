@@ -22,7 +22,11 @@ sub post_configure_hook {
     slot  => {},
     line_length => $line_length,
     filename    => $self->{server}{tracker}{filename} // "tracker.status",
+    time_format => $self->{server}{tracker}{time_format} // "local",
   };
+
+  Carp::confess("unknown time_format: $self->{tracker}{time_format}")
+    unless $self->{tracker}{time_format} =~ /\A(?:local|gm|epoch)\z/;
 
   my $fh = IO::File->new($self->{tracker}{filename}, ">");
   die "can't open tracker: $!" unless $fh;
@@ -88,18 +92,37 @@ sub child_finish_hook {
   return $self->SUPER(@rest);
 }
 
+
 sub update_tracking {
   my ($self, $message) = @_;
   $message //= 'ping';
 
-  my $slot = $self->{tracker}{slot}{$$};
+  my $tracker = $self->{tracker};
+
+  my $slot = $tracker->{slot}{$$};
   unless (defined $slot) {
     warn "!!! can't update tracking for unregistered pid $$";
     return;
   }
 
+  my $ts;
+  if ($tracker->{time_format} eq 'epoch') {
+    $ts = time;
+  } else {
+    my @t = $tracker->{time_format} eq 'gm' ? gmtime : localtime;
+    $ts = sprintf '%04u-%02u-%02uT%02u:%02u:%02u',
+      $t[5] + 1900,
+      $t[4] + 1,
+      @t[3, 2, 1, 0];
+  }
+
+  my $reserved =  7  # pid, space
+               + length($ts)
+               +  1  # space
+               +  1; # newline
+
   my $len = $self->{tracker}{line_length};
-  my $fit = $len - 19;
+  my $fit = $len - $reserved;
 
   # So, this is probably never going to be needed, but let's not get into a
   # place where we're writing the first byte of a multibyte sequence at a line
@@ -116,7 +139,7 @@ sub update_tracking {
     $message = substr $message, 0, $fit;
   }
 
-  $message = sprintf "%-6s %10s %-*s\n", $$, time, $fit, $message;
+  $message = sprintf "%-6s %s %-*s\n", $$, $ts, $fit, $message;
 
   my $fh = $self->{tracker}{fh};
   my $offset = $slot * $len;
