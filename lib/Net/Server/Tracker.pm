@@ -131,15 +131,16 @@ sub update_tracking {
   my $len = $self->{tracker}{line_length};
   my $fit = $len - $reserved;
 
+  # This would be \v if we lived in a more civilized time. -- rjbs, 2016-05-23
+  if ($message =~ s/[\x0A-\x0D\x85\x{2028}\x{2029}]/ /g) {
+    $self->log(1, "!!! replaced vertical whitespace with horizontal");
+  }
+
   # So, this is probably never going to be needed, but let's not get into a
   # place where we're writing the first byte of a multibyte sequence at a line
   # boundary, and then the next byte gets overwritten, etc...
   # -- rjbs, 2016-05-20
   utf8::encode($message);
-
-  if ($message =~ s/\v/ /g) {
-    $self->log(1, "!!! replaced vertical whitespace with horizontal");
-  }
 
   if (length $message > $fit) {
     $self->log(1, "!!! truncating message to fit in slot");
