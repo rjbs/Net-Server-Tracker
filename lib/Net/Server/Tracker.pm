@@ -1,4 +1,3 @@
-use 5.10.0;
 use strict;
 use warnings;
 
@@ -14,7 +13,10 @@ sub post_configure_hook {
   my $max_servers = $self->{server}{max_servers};
   die "can't cope with 0 max_servers" unless $max_servers;
 
-  my $line_length = $self->{server}{tracker}{line_length} // 80;
+  my $line_length = defined $self->{server}{tracker}{line_length}
+                  ?  $self->{server}{tracker}{line_length}
+                  : 80;
+
   Carp::confess("tracker line length must be at least 80")
     if $line_length < 80;
 
@@ -22,8 +24,12 @@ sub post_configure_hook {
     array => [ (undef) x $max_servers ],
     slot  => {},
     line_length => $line_length,
-    filename    => $self->{server}{tracker}{filename} // "tracker.status",
-    time_format => $self->{server}{tracker}{time_format} // "local",
+    filename    => defined $self->{server}{tracker}{filename}
+                 ? $self->{server}{tracker}{filename}
+                 : "tracker.status",
+    time_format => defined $self->{server}{tracker}{time_format}
+                 ? $self->{server}{tracker}{time_format}
+                 : "local",
   };
 
   Carp::confess("unknown time_format: $self->{tracker}{time_format}")
@@ -96,7 +102,7 @@ sub child_finish_hook {
 
 sub update_tracking {
   my ($self, $message) = @_;
-  $message //= 'ping';
+  $message = 'ping' if not defined $message;
 
   my $tracker = $self->{tracker};
 
