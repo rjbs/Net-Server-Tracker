@@ -81,7 +81,7 @@ sub child_init_hook {
   return $self->SUPER(@rest);
 }
 
-sub post_accept {
+sub post_accept_hook {
   my ($self, @rest) = @_;
   $self->update_tracking("accepted request for processing");
   $self->SUPER(@rest);
