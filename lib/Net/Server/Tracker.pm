@@ -5,7 +5,7 @@ package Net::Server::Tracker;
 # ABSTRACT: shared status file for Net::Server children
 
 use Carp ();
-use IO::File;
+use IO::File qw(O_CREAT O_EXLOCK O_NONBLOCK O_RDWR);
 use SUPER;
 
 sub post_configure_hook {
@@ -35,15 +35,19 @@ sub post_configure_hook {
   Carp::confess("unknown time_format: $self->{tracker}{time_format}")
     unless $self->{tracker}{time_format} =~ /\A(?:local|gm|epoch)\z/;
 
-  my $fh = IO::File->new($self->{tracker}{filename}, ">");
-  die "can't open tracker: $!" unless $fh;
+  my $fh = IO::File->new(
+    $self->{tracker}{filename},
+    O_CREAT | O_RDWR | O_EXLOCK | O_NONBLOCK
+  );
+
+  die "can't open tracker with exclusive lock: $!" unless $fh;
+
+  $self->{tracker}{lock_fh} = $fh;
 
   my $line = " " x ($self->{tracker}{line_length} - 1)
            . "\n";
 
   print {$fh} $line x $max_servers;
-
-  $fh->close;
 
   return $self->SUPER;
 }
@@ -74,7 +78,7 @@ sub child_init_hook {
   my $fh = IO::File->new($self->{tracker}{filename}, "+<");
   $fh->autoflush(1);
 
-  $self->{tracker}{fh} = $fh;
+  $self->{tracker}{write_fh} = $fh;
 
   $self->update_tracking("child online");
 
@@ -149,7 +153,7 @@ sub update_tracking {
 
   $message = sprintf "%-6s %s %-*s\n", $$, $ts, $fit, $message;
 
-  my $fh = $self->{tracker}{fh};
+  my $fh = $self->{tracker}{write_fh};
   my $offset = $slot * $len;
   seek $fh, $offset, 0;
   print {$fh} $message;
