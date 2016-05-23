@@ -3,6 +3,7 @@ use strict;
 use warnings;
 
 package Net::Server::Tracker;
+# ABSTRACT: shared status file for Net::Server children
 
 use Carp ();
 use IO::File;
